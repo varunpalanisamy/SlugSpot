@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Your Schedule</title>
+    <style>
+      body { margin: 0; padding: 0; font-family: sans-serif; }
+      .top-nav {
+        background-color: #222;
+        color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+      }
+      .top-nav a {
+        color: #bbb;
+        margin-right: 15px;
+        text-decoration: none;
+      }
+      .top-nav a:hover {
+        color: #fff;
+      }
+      .main-content { padding: 20px; }
+      .class-list li { margin: 5px 0; }
+      .remove-form { display: inline-block; margin-left: 10px; }
+    </style>
+  </head>
+  <body>
+    <div class="top-nav">
+      <div>
+        <a href="/home">Home</a>
+        <a href="/schedule">Your Schedule</a>
+        <a href="/pickaroom">Pick a Room</a>
+      </div>
+      <div>April 11th, 2025 (Friday)</div>
+    </div>
+
+    <div class="main-content">
+      <h1>Add a Class to Your Schedule</h1>
+      <form method="POST" action="/schedule">
+        <label>Class Code:</label><br/>
+        <!-- Use a datalist for autosuggest -->
+        <input type="text" name="classCode" list="classList" placeholder="e.g., AM 224 - 01" autocomplete="off" /><br/><br/>
+        <datalist id="classList">
+          <% allClasses.forEach(function(c) { %>
+            <option value="<%= c %>"></option>
+          <% }); %>
+        </datalist>
+        <button type="submit">Add Class</button>
+      </form>
+
+      <hr/>
+
+      <h2>Remove a Class</h2>
+      <% if (userClasses.length === 0) { %>
+        <p>No classes added yet.</p>
+      <% } else { %>
+        <ul class="class-list">
+          <% userClasses.forEach(function(uc) { %>
+            <li>
+              <strong><%= uc.className %></strong>
+              <form class="remove-form" method="POST" action="/schedule/remove">
+                <input type="hidden" name="classToRemove" value="<%= uc.className %>"/>
+                <button type="submit">Remove</button>
+              </form>
+            </li>
+          <% }); %>
+        </ul>
+      <% } %>
+    </div>
+  </body>
+</html>
