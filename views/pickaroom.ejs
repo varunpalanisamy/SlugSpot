@@ -3,100 +3,214 @@
   <head>
     <meta charset="utf-8" />
     <title>Find a Room - <%= day %></title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <style>
+      :root {
+        --primary-blue: #003c6c;
+        --secondary-blue: #0064b4;
+        --accent-yellow: #ffc800;
+        --light-yellow: #fff3cc;
+        --text-dark: #1a1a1a;
+        --text-light: #666666;
+        --bg-light: #f8fafc;
+        --border: #e2e8f0;
+      }
+
       body {
-        margin: 0; 
-        padding: 0; 
-        font-family: sans-serif;
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', sans-serif;
+        background-color: var(--bg-light);
+        color: var(--text-dark);
       }
+
       .top-nav {
-        background-color: #222; 
-        color: #fff;
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center;
-        padding: 10px 20px;
-      }
-      .top-nav a {
-        color: #bbb; 
-        margin-right: 15px; 
-        text-decoration: none;
-      }
-      .top-nav a:hover {
-        color: #fff;
-      }
-      .main-content {
-        padding: 20px;
-      }
-      /* Split container: left for form/results, right for calendar */
-      .split-container {
+        background: linear-gradient(to right, var(--primary-blue), var(--secondary-blue));
+        padding: 1rem 2rem;
         display: flex;
-        gap: 20px;
-        margin-top: 20px;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
-      .left-panel {
-        width: 400px;
+
+      .top-nav a {
+        color: white;
+        text-decoration: none;
+        margin-right: 2rem;
+        font-weight: 500;
+        transition: opacity 0.2s;
       }
-      .right-panel {
-        flex: 1;
+
+      .top-nav a:hover {
+        opacity: 0.8;
       }
+
+      .date-display {
+        color: white;
+        font-weight: 500;
+      }
+
+      .main-content {
+        max-width: 1400px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+      }
+
+      h1 {
+        color: var(--primary-blue);
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+      }
+
+      h2 {
+        color: var(--primary-blue);
+        font-size: 1.5rem;
+        margin: 1.5rem 0 1rem;
+      }
+
+      .split-container {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 2rem;
+      }
+
+      .details-panel {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      }
+
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+
+      .form-group label {
+        display: block;
+        color: var(--text-light);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+      }
+
+      select, input {
+        width: 100%;
+        padding: 0.5rem 1rem;
+        border: 2px solid var(--border);
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        background-color: white;
+        transition: all 0.2s;
+      }
+
+      select:hover, input:hover {
+        border-color: var(--secondary-blue);
+      }
+
+      select:focus, input:focus {
+        outline: none;
+        border-color: var(--accent-yellow);
+        box-shadow: 0 0 0 3px rgba(255, 200, 0, 0.1);
+      }
+
+      button {
+        background-color: var(--accent-yellow);
+        color: var(--primary-blue);
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s;
+        width: 100%;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+      }
+
+      .search-results {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+
+      .search-results p {
+        color: var(--text-light);
+      }
+
+      .search-results strong {
+        color: var(--primary-blue);
+      }
+
       .calendar-wrapper {
         display: flex;
-        gap: 10px;
+        gap: 1rem;
+        background: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
       }
+
       .time-axis {
         position: relative;
-        width: 60px;
+        width: 80px;
         height: <%= calendarHeight + 20 %>px;
-        border: 1px solid #ccc;
-        background-color: #f9f9f9;
+        border-right: 1px solid var(--border);
         padding-top: 10px;
-        box-sizing: border-box;
       }
+
       .time-label {
-        position: absolute; 
-        left: 0; 
-        width: 100%;
-        text-align: right; 
-        padding-right: 5px;
-        font-size: 12px; 
-        box-sizing: border-box;
+        position: absolute;
+        right: 1rem;
+        font-size: 0.875rem;
+        color: var(--text-light);
       }
+
       .calendar-container {
         position: relative;
-        width: 600px;
+        flex: 1;
         height: <%= calendarHeight + 20 %>px;
-        border: 1px solid #ccc;
-        background-color: #fafcff;
-        overflow: hidden;
+        background: var(--bg-light);
+        border-radius: 0.5rem;
         padding-top: 10px;
-        box-sizing: border-box;
-        cursor: pointer;
       }
-      .booking {
-        position: absolute;
-        left: 0; 
-        right: 0;
-        background-color: rgba(240, 90, 76, 0.3);
-        border: 1px solid #0070f3;
-        padding: 2px;
-        box-sizing: border-box;
-        font-size: 12px;
-        z-index: 1;
-      }
+
       .hour-line {
         position: absolute;
         left: 0;
         width: 100%;
-        border-top: 1px solid #ddd;
-        pointer-events: none;
-        z-index: 0;
+        border-top: 1px dashed var(--border);
       }
-      /* Style the left panel's form and datalist */
-      input[list] {
-        width: 100%;
-        padding: 5px;
-        box-sizing: border-box;
+
+      .booking {
+        position: absolute;
+        left: 1rem;
+        right: 1rem;
+        background: linear-gradient(135deg, var(--secondary-blue), var(--primary-blue));
+        color: white;
+        padding: 0.5rem;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
+      }
+
+      .booking:hover {
+        transform: scale(1.02);
+      }
+
+      @media (max-width: 1024px) {
+        .split-container {
+          grid-template-columns: 1fr;
+        }
+        
+        .calendar-wrapper {
+          overflow-x: auto;
+        }
+
+        .main-content {
+          padding: 1rem;
+        }
       }
     </style>
   </head>
@@ -107,43 +221,46 @@
         <a href="/schedule">Your Schedule</a>
         <a href="/pickaroom">Pick a Room</a>
       </div>
-      <div>April 11th, 2025 (Friday)</div>
+      <div class="date-display">April 11th, 2025 (Friday)</div>
     </div>
     
     <div class="main-content">
       <h1>Pick a Room</h1>
 
-      <!-- LEFT PANEL: Form + results -->
       <div class="split-container">
         <div class="left-panel">
-          <form method="GET" action="/pickaroom">
-            <label>Day:</label>
-            <select name="day">
-              <option value="Monday"    <%= day==="Monday" ? "selected" : "" %>>Monday</option>
-              <option value="Tuesday"   <%= day==="Tuesday" ? "selected" : "" %>>Tuesday</option>
-              <option value="Wednesday" <%= day==="Wednesday" ? "selected" : "" %>>Wednesday</option>
-              <option value="Thursday"  <%= day==="Thursday" ? "selected" : "" %>>Thursday</option>
-              <option value="Friday"    <%= day==="Friday" ? "selected" : "" %>>Friday</option>
-            </select>
-            <br /><br />
-            <label>Location (optional):</label><br/>
-            <input type="text" name="location" list="locationList" placeholder="e.g. Soc Sci 1 110" value="<%= locationFilter %>" />
-            <datalist id="locationList">
-              <% allLocations.forEach(function(loc) { %>
-                <option value="<%= loc %>"></option>
-              <% }); %>
-            </datalist>
-            <br /><br />
-            <button type="submit">Search</button>
-          </form>
-          <h2>Results - <%= day %> <% if(locationFilter) { %> - <%= locationFilter %> <% } %></h2>
-          <p>Found <strong><%= bookings.length %></strong> matching classes.</p>
+          <div class="details-panel">
+            <form method="GET" action="/pickaroom">
+              <div class="form-group">
+                <label>Day:</label>
+                <select name="day">
+                  <option value="Monday"    <%= day==="Monday" ? "selected" : "" %>>Monday</option>
+                  <option value="Tuesday"   <%= day==="Tuesday" ? "selected" : "" %>>Tuesday</option>
+                  <option value="Wednesday" <%= day==="Wednesday" ? "selected" : "" %>>Wednesday</option>
+                  <option value="Thursday"  <%= day==="Thursday" ? "selected" : "" %>>Thursday</option>
+                  <option value="Friday"    <%= day==="Friday" ? "selected" : "" %>>Friday</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Location (optional):</label>
+                <input type="text" name="location" list="locationList" placeholder="e.g. Soc Sci 1 110" value="<%= locationFilter %>" />
+                <datalist id="locationList">
+                  <% allLocations.forEach(function(loc) { %>
+                    <option value="<%= loc %>"></option>
+                  <% }); %>
+                </datalist>
+              </div>
+              <button type="submit">Search Rooms</button>
+            </form>
+            <div class="search-results">
+              <h2>Results - <%= day %> <% if(locationFilter) { %> - <%= locationFilter %> <% } %></h2>
+              <p>Found <strong><%= bookings.length %></strong> matching classes.</p>
+            </div>
+          </div>
         </div>
 
-        <!-- RIGHT PANEL: The Calendar -->
         <div class="right-panel">
           <div class="calendar-wrapper">
-            <!-- TIME AXIS -->
             <div class="time-axis">
               <% for (let t = 420; t <= 1320; t += 60) {
                   let hour = Math.floor(t / 60);
@@ -157,7 +274,6 @@
               <% } %>
             </div>
 
-            <!-- CALENDAR AREA -->
             <div class="calendar-container">
               <% for (let t = 420; t <= 1320; t += 60) {
                   let offset = (t - 420) * scale;

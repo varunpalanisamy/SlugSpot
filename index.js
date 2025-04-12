@@ -150,6 +150,9 @@ app.get('/home/freerooms', (req, res) => {
     /^McHenry Lib/i,
     /^Sci & Engr Library/i,
     /^Ocean/i,
+    /^LG/i,
+    /^Biomed/i
+    
   ];
   function isDisallowed(room) {
     return disallowedPrefixes.some(pattern => pattern.test(room));

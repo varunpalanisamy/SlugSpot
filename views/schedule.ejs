@@ -3,27 +3,205 @@
   <head>
     <meta charset="utf-8" />
     <title>Your Schedule</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <style>
-      body { margin: 0; padding: 0; font-family: sans-serif; }
+      :root {
+        --primary-blue: #003c6c;
+        --secondary-blue: #0064b4;
+        --accent-yellow: #ffc800;
+        --light-yellow: #fff3cc;
+        --text-dark: #1a1a1a;
+        --text-light: #666666;
+        --bg-light: #f8fafc;
+        --border: #e2e8f0;
+        --danger: #dc2626;
+        --danger-hover: #b91c1c;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', sans-serif;
+        background-color: var(--bg-light);
+        color: var(--text-dark);
+      }
+
       .top-nav {
-        background-color: #222;
-        color: #fff;
+        background: linear-gradient(to right, var(--primary-blue), var(--secondary-blue));
+        padding: 1rem 2rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 10px 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
+
       .top-nav a {
-        color: #bbb;
-        margin-right: 15px;
+        color: white;
         text-decoration: none;
+        margin-right: 2rem;
+        font-weight: 500;
+        transition: opacity 0.2s;
       }
+
       .top-nav a:hover {
-        color: #fff;
+        opacity: 0.8;
       }
-      .main-content { padding: 20px; }
-      .class-list li { margin: 5px 0; }
-      .remove-form { display: inline-block; margin-left: 10px; }
+
+      .date-display {
+        color: white;
+        font-weight: 500;
+      }
+
+      .main-content {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+      }
+
+      h1, h2 {
+        color: var(--primary-blue);
+        margin-bottom: 1.5rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+        font-weight: 700;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-top: 2.5rem;
+      }
+
+      .card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+      }
+
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+
+      .form-group label {
+        display: block;
+        color: var(--text-light);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+      }
+
+      input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--border);
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        background-color: white;
+        transition: all 0.2s;
+      }
+
+      input:hover {
+        border-color: var(--secondary-blue);
+      }
+
+      input:focus {
+        outline: none;
+        border-color: var(--accent-yellow);
+        box-shadow: 0 0 0 3px rgba(255, 200, 0, 0.1);
+      }
+
+      button {
+        background-color: var(--accent-yellow);
+        color: var(--primary-blue);
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+      }
+
+      .class-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .class-list li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background-color: var(--bg-light);
+        border-radius: 0.5rem;
+        margin-bottom: 0.75rem;
+        transition: transform 0.2s;
+      }
+
+      .class-list li:hover {
+        transform: translateX(4px);
+      }
+
+      .class-name {
+        font-weight: 500;
+        color: var(--primary-blue);
+      }
+
+      .remove-form {
+        margin-left: 1rem;
+      }
+
+      .remove-form button {
+        background-color: var(--danger);
+        color: white;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+      }
+
+      .remove-form button:hover {
+        background-color: var(--danger-hover);
+      }
+
+      .empty-state {
+        text-align: center;
+        color: var(--text-light);
+        padding: 2rem;
+        background-color: var(--bg-light);
+        border-radius: 0.5rem;
+        margin-top: 1rem;
+      }
+
+      @media (max-width: 640px) {
+        .main-content {
+          padding: 1rem;
+        }
+
+        .card {
+          padding: 1rem;
+        }
+
+        .class-list li {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.75rem;
+        }
+
+        .remove-form {
+          margin-left: 0;
+          width: 100%;
+        }
+
+        .remove-form button {
+          width: 100%;
+        }
+      }
     </style>
   </head>
   <body>
@@ -33,41 +211,54 @@
         <a href="/schedule">Your Schedule</a>
         <a href="/pickaroom">Pick a Room</a>
       </div>
-      <div>April 11th, 2025 (Friday)</div>
+      <div class="date-display">April 11th, 2025 (Friday)</div>
     </div>
 
     <div class="main-content">
       <h1>Add a Class to Your Schedule</h1>
-      <form method="POST" action="/schedule">
-        <label>Class Code:</label><br/>
-        <!-- Use a datalist for autosuggest -->
-        <input type="text" name="classCode" list="classList" placeholder="e.g., AM 224 - 01" autocomplete="off" /><br/><br/>
-        <datalist id="classList">
-          <% allClasses.forEach(function(c) { %>
-            <option value="<%= c %>"></option>
-          <% }); %>
-        </datalist>
-        <button type="submit">Add Class</button>
-      </form>
+      
+      <div class="card">
+        <form method="POST" action="/schedule">
+          <div class="form-group">
+            <label for="classCode">Class Code:</label>
+            <input
+              type="text"
+              id="classCode"
+              name="classCode"
+              list="classList"
+              placeholder="e.g., AM 224 - 01"
+              autocomplete="off"
+            />
+            <datalist id="classList">
+              <% allClasses.forEach(function(c) { %>
+                <option value="<%= c %>"></option>
+              <% }); %>
+            </datalist>
+          </div>
+          <button type="submit">Add Class</button>
+        </form>
+      </div>
 
-      <hr/>
-
-      <h2>Remove a Class</h2>
-      <% if (userClasses.length === 0) { %>
-        <p>No classes added yet.</p>
-      <% } else { %>
-        <ul class="class-list">
-          <% userClasses.forEach(function(uc) { %>
-            <li>
-              <strong><%= uc.className %></strong>
-              <form class="remove-form" method="POST" action="/schedule/remove">
-                <input type="hidden" name="classToRemove" value="<%= uc.className %>"/>
-                <button type="submit">Remove</button>
-              </form>
-            </li>
-          <% }); %>
-        </ul>
-      <% } %>
+      <h2>Your Classes</h2>
+      <div class="card">
+        <% if(userClasses.length === 0) { %>
+          <div class="empty-state">
+            <p>No classes added yet.</p>
+          </div>
+        <% } else { %>
+          <ul class="class-list">
+            <% userClasses.forEach(function(uc) { %>
+              <li>
+                <span class="class-name"><%= uc.className %></span>
+                <form class="remove-form" method="POST" action="/schedule/remove">
+                  <input type="hidden" name="classToRemove" value="<%= uc.className %>"/>
+                  <button type="submit">Remove</button>
+                </form>
+              </li>
+            <% }); %>
+          </ul>
+        <% } %>
+      </div>
     </div>
   </body>
 </html>
