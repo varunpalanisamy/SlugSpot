@@ -10,21 +10,21 @@
         width: 100%;
       }
     </style>
-    <!-- Load your config file first -->
+    
+    <!-- Load config.js first -->
     <script src="config.js"></script>
     
     <!-- Load PapaParse for CSV parsing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     
     <script>
-      // Dynamically inject the Google Maps API script using the key from config.js and load the marker library.
+      // Dynamically inject the Google Maps API script using the API key from config.js.
       if (!window.GOOGLE_MAPS_API_KEY) {
         console.error("No API key found in config.js!");
       } else {
         const script = document.createElement('script');
         script.src =
-          "https://maps.googleapis.com/maps/api/js?key=" +
-          window.GOOGLE_MAPS_API_KEY +
+          "https://maps.googleapis.com/maps/api/js?key=" + window.GOOGLE_MAPS_API_KEY +
           "&callback=initMap&libraries=marker";
         script.async = true;
         script.defer = true;
@@ -34,6 +34,7 @@
   </head>
   <body>
     <div id="map"></div>
+    <!-- Load your main JavaScript file after the above scripts -->
     <script src="studySpots.js"></script>
   </body>
 </html>
