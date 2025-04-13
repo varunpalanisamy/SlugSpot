@@ -195,3 +195,4 @@ function initMarkers(map) {
       });
     });
 }
+
