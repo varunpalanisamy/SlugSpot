@@ -91,6 +91,10 @@ app.get('/home', (req, res) => {
 
   res.render('home', { day, bookings, scale, calendarHeight });
 });
+// New route for the Map tab
+app.get('/map', (req, res) => {
+  res.render("map");
+});
 
 /**
  * GET /home/freerooms?day=Monday&time=01:30PM

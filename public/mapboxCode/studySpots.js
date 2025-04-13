@@ -63,7 +63,7 @@ window.initMap = function () {
     });
   }
 
-  fetch("classes_addresses.csv")
+  fetch("/mapboxCode/classes_addresses.csv")
     .then((res) => res.text())
     .then((csvText) => {
       const results = Papa.parse(csvText, {
@@ -79,7 +79,7 @@ window.initMap = function () {
       });
     });
 
-  fetch("public_addresses.csv")
+  fetch("/mapboxCode/public_addresses.csv")
     .then((res) => res.text())
     .then((csvText) => {
       const results = Papa.parse(csvText, {
@@ -95,7 +95,7 @@ window.initMap = function () {
       });
     });
 
-  fetch("food_addresses.csv")
+  fetch("/mapboxCode/food_addresses.csv")
     .then((res) => res.text())
     .then((csvText) => {
       const results = Papa.parse(csvText, {
