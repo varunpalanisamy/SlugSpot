@@ -86,17 +86,22 @@ app.get("/home", (req, res) => {
 
   // Build bookings for the user's schedule from in-memory userClasses.
   const bookings = userClasses
-    .filter((c) => c.days.includes(dayAbbr))
-    .map((c) => {
-      const startOffset = timeToMinutes(c.start);
-      const endOffset = timeToMinutes(c.end);
-      return {
-        className: c.className,
-        timeRange: `${c.start} - ${c.end}`,
-        top: startOffset * scale,
-        height: (endOffset - startOffset) * scale,
-      };
-    });
+
+  .filter(c => c.days.includes(dayAbbr))
+  .map(c => {
+    const startOffset = timeToMinutes(c.start);
+    const endOffset = timeToMinutes(c.end);
+    const rawHeight = (endOffset - startOffset) * scale;
+    const adjustedHeight = rawHeight - 5; // subtract 5px for a shorter box
+    return {
+      className: c.className,
+      timeRange: `${c.start} - ${c.end}`,
+      top: startOffset * scale,
+      height: adjustedHeight > 0 ? adjustedHeight : 0
+    };
+  });
+
+
 
   res.render("home", { day, bookings, scale, calendarHeight });
 });
@@ -273,7 +278,7 @@ app.get("/pickaroom", (req, res) => {
     return true;
   });
 
-  const scale = 0.75;
+  const scale = 0.5;
   const totalMinutes = 1320 - 420;
   const calendarHeight = totalMinutes * scale;
 
