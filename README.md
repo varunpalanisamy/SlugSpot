@@ -13,11 +13,32 @@ cd BananaBreak
 python -m venv newenv
 source newenv/bin/activate
 pip install -r requirements.txt
+npm install
 ```
 
 ---
 
-### 2. Run Website
+### 2. Add Google Maps API Key
+
+Create a file:
+
+```
+public/config.js
+```
+
+With the contents:
+
+```js
+  "GOOGLE_MAPS_API_KEY": "YOUR_GOOGLE_MAPS_API_KEY"
+```
+Replace with your own API key. Make sure you enable:
+- Maps JavaScript API
+- Geocoding API
+- Distance Matrix API
+
+---
+
+### 3. Run Website
 
 ```bash
 node index.js
