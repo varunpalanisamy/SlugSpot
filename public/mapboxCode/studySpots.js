@@ -63,6 +63,10 @@ window.initMap = function () {
     });
   }
 
+  function normalizeLocation(rawLoc) {
+    return rawLoc.replace(/^(LEC:|SEM:|LAB:)?\s*/, "").trim();
+  }
+
   fetch("/mapboxCode/test.csv")
     .then((res) => res.text())
     .then((csvText) => {
