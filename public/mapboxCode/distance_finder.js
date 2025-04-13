@@ -1,45 +1,64 @@
 function initMarkers(map) {
-
-
   // 1) fetch user’s Monday classes from our new route
-  fetch('/api/myclasses')
-    .then(res => res.json())
-    .then(userClasses => {
+  const testClasses = [];
+  fetch("/api/myclasses")
+    .then((res) => res.json())
+    .then((userClasses) => {
+      console.log("✅ Received userClasses from /api/myclasses:");
+      userClasses.forEach((cls, i) => {
+        console.log(`Class ${i}:`, cls);
+      });
       // => userClasses is an array of objects: [{ className, days, start, end }, ...]
       // 2) parse classes_addresses.csv so we can map each "className" to an "Address"
-      return fetch('/mapboxCode/test.csv')
-        .then(res => res.text())
-        .then(csvText => {
-          const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
-          return { userClasses, addressRows: parsed.data }; 
+      return fetch("/mapboxCode/test.csv")
+        .then((res) => res.text())
+        .then((csvText) => {
+          const parsed = Papa.parse(csvText, {
+            header: true,
+            skipEmptyLines: true,
+          });
+          console.log("✅ Parsed test.csv:");
+          parsed.data.forEach((row, i) => {
+            console.log(
+              `Row ${i}: Location=${row["Location"]}, Address=${row["Address"]}`
+            );
+          });
+          return { userClasses, addressRows: parsed.data };
         });
     })
     .then(({ userClasses, addressRows }) => {
       // 3) For each userClass, find the address in addressRows
-      userClasses.forEach(cls => {
-        const matching = addressRows.find(row => {
-          // Example: row["Class"] might match cls.className
-          return row["Class"] && row["Class"].trim() === cls.className.trim();
+      userClasses.forEach((cls, index) => {
+        const normalizedClass = normalizeLocation(cls.location);
+        console.log(`🔍 [${index}] Raw class location: ${cls.location}`);
+        console.log(
+          `🔍 [${index}] Normalized class location: ${normalizedClass}`
+        );
+
+        const matching = addressRows.find((row, rowIdx) => {
+          const rawRowLoc = row["Class"] || row["Location"] || "";
+          const normalizedRowLoc = normalizeLocation(rawRowLoc);
+          console.log(
+            `🆚 Comparing with row ${rowIdx} normalized location: ${normalizedRowLoc}`
+          );
+          return normalizedRowLoc === normalizedClass;
         });
 
         if (!matching) {
-          console.warn(`No address found for ${cls.className}`);
+          console.warn(
+            `❌ No address match for ${cls.className} → normalized: '${normalizedClass}'`
+          );
           return;
         }
 
-        // We have an address
         const address = matching["Address"];
-        // Now geocode that address & place pink marker
+        console.log(`✅ Found address: ${address}`);
         geocodeAndPlacePinkMarker(map, cls, address);
       });
     })
-    .catch(err => {
+    .catch((err) => {
       console.error("Error fetching user classes or addresses:", err);
     });
-
-
-
-
 
   const classCoords = { start: null, end: null };
   const breakStart = "11:45";
@@ -73,13 +92,16 @@ function initMarkers(map) {
   }
 
   function normalizeLocation(rawLoc) {
-    return rawLoc.replace(/^(LEC:|SEM:|LAB:)?\s*/, "").replace(/\s+\d+$/, "").trim();
+    if (!rawLoc) return "";
+    return rawLoc.replace(/^(LEC:|SEM:|LAB:)?\s*/, "").trim();
   }
 
   function locationHasConflict(loc) {
     const entries = scheduledClasses.get(loc);
     if (!entries) return false;
-    return entries.some(([start, end]) => start < breakEndMin && end > breakStartMin);
+    return entries.some(
+      ([start, end]) => start < breakEndMin && end > breakStartMin
+    );
   }
 
   function geocodeAddress(address) {
@@ -116,7 +138,7 @@ function initMarkers(map) {
   }
 
   // Step 1: Load class schedule first
-  fetch("../data/ucsc_class_data_preprocessed.csv")
+  fetch("/data/occupied_rooms.csv")
     .then((res) => res.text())
     .then((csvText) => {
       const results = Papa.parse(csvText, {
@@ -191,6 +213,11 @@ function initMarkers(map) {
               validSpots.map((row) =>
                 geocodeAddress(row.Address).then((coords) => {
                   if (!coords) return null;
+                  if (!classCoords.start || !classCoords.end) {
+                    console.warn("🚫 Missing start or end coordinates; skipping walk time calculations.");
+                    return;
+                  }
+                  
 
                   return Promise.all([
                     getWalkingTime(classCoords.start, coords),
@@ -255,4 +282,3 @@ function geocodeAndPlacePinkMarker(map, clsObj, address) {
     }
   });
 }
-
