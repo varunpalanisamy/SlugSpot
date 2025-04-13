@@ -1,4 +1,4 @@
-# BananaBreak: UCSC Free Classroom Finder
+# BananaBreak: UCSC Classroom Finder
 
 **BananaBreak** is a full-stack system built to help UCSC students find empty classrooms to relax, study, or hang out between classes.
 ---
