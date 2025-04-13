@@ -247,7 +247,7 @@
                   let hour = Math.floor(t / 60);
                   let ampm = hour >= 12 ? "PM" : "AM";
                   let displayHour = (hour % 12) || 12;
-                  let offset = (t - 420) * 0.5;
+                  let offset = (t - 420) * scale;
               %>
                 <div class="time-label" style="top: <%= offset + 10 - 6 %>px;">
                   <%= displayHour + ":00" + ampm %>
@@ -257,7 +257,7 @@
 
             <div class="calendar-container" id="calendarContainer">
               <% for (let t = 420; t <= 1320; t += 60) {
-                  let offset = (t - 420) * 0.5;
+                  let offset = (t - 420) * scale;
               %>
                 <div class="hour-line" style="top:<%= offset + 10 %>px;"></div>
               <% } %>
