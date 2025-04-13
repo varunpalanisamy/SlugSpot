@@ -1,18 +1,45 @@
 function initMarkers(map) {
-  const testClasses = [
-    {
-      className: "AM 11B - Math Methds Econ II",
-      location: "Kresge Acad",
-      time: "MWF 10:40AM-11:45AM",
-      address: "510 Porter-Kresge Rd, Santa Cruz, CA 95064",
-    },
-    {
-      className: "AM 20 - Math Methods II",
-      location: "ClassroomUnit",
-      time: "MWF 01:20PM-02:25PM",
-      address: "520 Steinhart Way, Santa Cruz, CA 95064",
-    },
-  ];
+
+
+  // 1) fetch user’s Monday classes from our new route
+  fetch('/api/myclasses')
+    .then(res => res.json())
+    .then(userClasses => {
+      // => userClasses is an array of objects: [{ className, days, start, end }, ...]
+      // 2) parse classes_addresses.csv so we can map each "className" to an "Address"
+      return fetch('/mapboxCode/classes_addresses.csv')
+        .then(res => res.text())
+        .then(csvText => {
+          const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+          return { userClasses, addressRows: parsed.data }; 
+        });
+    })
+    .then(({ userClasses, addressRows }) => {
+      // 3) For each userClass, find the address in addressRows
+      userClasses.forEach(cls => {
+        const matching = addressRows.find(row => {
+          // Example: row["Class"] might match cls.className
+          return row["Class"] && row["Class"].trim() === cls.className.trim();
+        });
+
+        if (!matching) {
+          console.warn(`No address found for ${cls.className}`);
+          return;
+        }
+
+        // We have an address
+        const address = matching["Address"];
+        // Now geocode that address & place pink marker
+        geocodeAndPlacePinkMarker(map, cls, address);
+      });
+    })
+    .catch(err => {
+      console.error("Error fetching user classes or addresses:", err);
+    });
+
+
+
+
 
   const classCoords = { start: null, end: null };
   const breakStart = "11:45";
@@ -195,3 +222,37 @@ function initMarkers(map) {
       });
     });
 }
+
+// Helper to geocode + place pink marker
+function geocodeAndPlacePinkMarker(map, clsObj, address) {
+  const geocoder = new google.maps.Geocoder();
+  geocoder.geocode({ address: address }, (results, status) => {
+    if (status === "OK" && results[0]) {
+      const marker = new google.maps.Marker({
+        map,
+        position: results[0].geometry.location,
+        title: clsObj.className,
+        icon: {
+          url: "http://maps.google.com/mapfiles/ms/icons/pink-dot.png",
+        },
+      });
+      marker.setVisible(false); // default hidden until user toggles
+
+      // infoWindow
+      const infoWindow = new google.maps.InfoWindow({
+        content: `
+          <h3>${clsObj.className}</h3>
+          <p>Days: ${clsObj.days}</p>
+          <p>Start: ${clsObj.start}, End: ${clsObj.end}</p>
+        `,
+      });
+      marker.addListener("click", () => infoWindow.open(map, marker));
+
+      // store in markerGroups["test"] so “Test Classes” button can show/hide
+      markerGroups.test.push(marker);
+    } else {
+      console.error(`geocode failed for ${clsObj.className}:`, status);
+    }
+  });
+}
+
