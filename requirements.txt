@@ -1,4 +1,7 @@
 selenium
-pandas
 webdriver-manager
-express
+pandas==1.5.3
+bs4
+pymongo
+streamlit
+urllib3==1.26.20
