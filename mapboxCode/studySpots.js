@@ -1,70 +1,70 @@
-// studySpots.js
+let map;
+const markerGroups = {
+  class: [],
+  study: [],
+  food: [],
+  test: [],
+};
 
-// Attach initMap to the window to ensure it is globally accessible.
+// Attach initMap globally
 window.initMap = function () {
-  // Initialize the map at a default center.
   const defaultCenter = { lat: 36.9918, lng: -122.0585 };
-  const map = new google.maps.Map(document.getElementById("map"), {
+  map = new google.maps.Map(document.getElementById("map"), {
     center: defaultCenter,
     zoom: 16,
+    tilt: 45,
+    heading: 45,
     mapTypeId: google.maps.MapTypeId.ROADMAP,
   });
 
-  // Example: Show the user's current location.
   if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const userLocation = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
-        map.setCenter(userLocation);
-        new google.maps.Marker({
-          position: userLocation,
-          map: map,
-          title: "You are here",
-          icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-        });
-      },
-      () => console.warn("Geolocation failed. Using default center.")
-    );
+    navigator.geolocation.getCurrentPosition((position) => {
+      const userLocation = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      };
+      map.setCenter(userLocation);
+      new google.maps.Marker({
+        position: userLocation,
+        map,
+        title: "You are here",
+        icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+      });
+    });
   }
 
-  // Create a Geocoder instance.
   const geocoder = new google.maps.Geocoder();
 
-  // Helper function: geocode an address, add a marker, and attach a click listener for an InfoWindow.
-  function geocodeAndPlaceMarker(address, label, color) {
+  function geocodeAndPlaceMarker(address, label, color, category) {
     geocoder.geocode({ address: address }, (results, status) => {
       if (status === "OK" && results[0]) {
         const marker = new google.maps.Marker({
-          map: map,
+          map,
           position: results[0].geometry.location,
           title: label,
           icon: {
-            url: `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`, // Use the color parameter
+            url: `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`,
           },
         });
-        // Create an InfoWindow that displays the location name.
+
         const infoWindow = new google.maps.InfoWindow({
-          content: "<h3>" + label + "</h3>",
+          content: `<h3>${label}</h3>`,
         });
+
         marker.addListener("click", () => {
           infoWindow.open(map, marker);
         });
+
+        markerGroups[category].push(marker);
+        marker.setVisible(false); // Start hidden
       } else {
-        console.error(`Geocode was not successful for ${label}: ${status}`);
+        console.error(`Geocode failed for ${label}: ${status}`);
       }
     });
   }
 
-  // Add some hardcoded markers.
-  // geocodeAndPlaceMarker("414 McHenry Rd, Santa Cruz, CA 95064", "McHenry Library");
-  // geocodeAndPlaceMarker("580 Red Hill Rd, Santa Cruz, CA 95064", "S&E Library");
-
-  // Load markers from addresses.csv.
   fetch("classes_addresses.csv")
-    .then((response) => response.text())
+    .then((res) => res.text())
     .then((csvText) => {
       const results = Papa.parse(csvText, {
         header: true,
@@ -73,16 +73,14 @@ window.initMap = function () {
       results.data.forEach((row) => {
         const address = row["Address"]?.trim();
         const location = row["Location"]?.trim();
-        console.log(`Placing marker for ${location} at address: ${address}`);
         if (address && location) {
-          geocodeAndPlaceMarker(address, location, "red");
+          geocodeAndPlaceMarker(address, location, "red", "class");
         }
       });
-    })
-    .catch((err) => console.error("Error loading addresses.csv:", err));
+    });
 
   fetch("public_addresses.csv")
-    .then((response) => response.text())
+    .then((res) => res.text())
     .then((csvText) => {
       const results = Papa.parse(csvText, {
         header: true,
@@ -91,11 +89,48 @@ window.initMap = function () {
       results.data.forEach((row) => {
         const address = row["Address"]?.trim();
         const location = row["Location"]?.trim();
-        console.log(`Placing marker for ${location} at address: ${address}`);
         if (address && location) {
-          geocodeAndPlaceMarker(address, location, "green");
+          geocodeAndPlaceMarker(address, location, "green", "study");
         }
       });
-    })
-    .catch((err) => console.error("Error loading addresses.csv:", err));
+    });
+
+  fetch("food_addresses.csv")
+    .then((res) => res.text())
+    .then((csvText) => {
+      const results = Papa.parse(csvText, {
+        header: true,
+        skipEmptyLines: true,
+      });
+      results.data.forEach((row) => {
+        const address = row["Address"]?.trim();
+        const location = row["Location"]?.trim();
+        if (address && location) {
+          geocodeAndPlaceMarker(address, location, "purple", "food");
+        }
+      });
+    });
+
+  if (typeof initMarkers === "function") {
+    initMarkers(map);
+  }
+};
+
+// Toggle marker visibility
+window.toggleMarkers = function (type) {
+  if (!markerGroups[type] || markerGroups[type].length === 0) {
+    console.warn(`No markers found for type: ${type}`);
+    return;
+  }
+
+  // Toggle visibility
+  const currentlyVisible = markerGroups[type].some(m => m.getVisible());
+
+  markerGroups[type].forEach(marker => {
+    marker.setVisible(!currentlyVisible);
+  });
+
+  console.log(
+    `${!currentlyVisible ? "Showing" : "Hiding"} ${markerGroups[type].length} "${type}" markers`
+  );
 };
