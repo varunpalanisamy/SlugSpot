@@ -21,7 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 // (A) "Pick a Room" CSV Data (for room scheduling)
 // =====================
 let classData = [];
-fs.createReadStream(path.join(__dirname, 'data', 'ucsc_class_data_preprocessed.csv'))
+fs.createReadStream(path.join(__dirname, 'data', 'occupied_rooms.csv'))
   .pipe(csv())
   .on('data', (row) => { classData.push(row); })
   .on('end', () => { 
@@ -70,9 +70,10 @@ app.get('/home', (req, res) => {
   const dayMapping = { Monday: 'M', Tuesday: 'Tu', Wednesday: 'W', Thursday: 'Th', Friday: 'F' };
   const dayAbbr = dayMapping[day] || 'M';
 
-  const scale = 0.5;
-  const totalMinutes = 1320 - 420; // 7:00 AM to 10:00 PM (900 minutes)
+  const scale = 1; // 1px per minute
+  const totalMinutes = 1320 - 420;
   const calendarHeight = totalMinutes * scale;
+
 
   // Build bookings for the user's schedule from in-memory userClasses.
   const bookings = userClasses
@@ -214,7 +215,7 @@ app.get('/pickaroom', (req, res) => {
     return true;
   });
 
-  const scale = 0.5;
+  const scale = 0.75;
   const totalMinutes = 1320 - 420;
   const calendarHeight = totalMinutes * scale;
 
