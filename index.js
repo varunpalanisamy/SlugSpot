@@ -1,18 +1,18 @@
-const express = require('express');
-const path = require('path');
-const fs = require('fs');
-const csv = require('csv-parser');
-const dayjs = require('dayjs');
-const customParseFormat = require('dayjs/plugin/customParseFormat');
+const express = require("express");
+const path = require("path");
+const fs = require("fs");
+const csv = require("csv-parser");
+const dayjs = require("dayjs");
+const customParseFormat = require("dayjs/plugin/customParseFormat");
 dayjs.extend(customParseFormat);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Set EJS and serve static assets
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-app.use(express.static(path.join(__dirname, 'public')));
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+app.use(express.static(path.join(__dirname, "public")));
 
 // Middleware to parse POST form data
 app.use(express.urlencoded({ extended: true }));
@@ -21,11 +21,15 @@ app.use(express.urlencoded({ extended: true }));
 // (A) "Pick a Room" CSV Data (for room scheduling)
 // =====================
 let classData = [];
-fs.createReadStream(path.join(__dirname, 'data', 'occupied_rooms.csv'))
+fs.createReadStream(
+  path.join(__dirname, "public", "data", "occupied_rooms.csv")
+)
   .pipe(csv())
-  .on('data', (row) => { classData.push(row); })
-  .on('end', () => { 
-    console.log('CSV loaded for pick-a-room, total rows:', classData.length); 
+  .on("data", (row) => {
+    classData.push(row);
+  })
+  .on("end", () => {
+    console.log("CSV loaded for pick-a-room, total rows:", classData.length);
   });
 
 // =====================
@@ -45,12 +49,12 @@ function parseDayTime(dtStr) {
 
 // Helper: Convert a time string (like "01:30PM") into minutes offset from 7:00 AM (420).
 function timeToMinutes(timeStr) {
-  let parsed = dayjs(timeStr, 'hh:mmA');
+  let parsed = dayjs(timeStr, "hh:mmA");
   if (!parsed.isValid()) {
-    parsed = dayjs(timeStr, 'h:mmA');
+    parsed = dayjs(timeStr, "h:mmA");
   }
   if (!parsed.isValid()) {
-    console.log('Time parse fail:', timeStr);
+    console.log("Time parse fail:", timeStr);
     return 0;
   }
   const minutesFromMidnight = parsed.hour() * 60 + parsed.minute();
@@ -60,23 +64,29 @@ function timeToMinutes(timeStr) {
 // ------------ Routes ------------
 
 // Root redirect to /home
-app.get('/', (req, res) => {
-  res.redirect('/home');
+app.get("/", (req, res) => {
+  res.redirect("/home");
 });
 
 // ---------- (1) HOME: Show user’s personal schedule ----------
-app.get('/home', (req, res) => {
-  const day = req.query.day || 'Monday';
-  const dayMapping = { Monday: 'M', Tuesday: 'Tu', Wednesday: 'W', Thursday: 'Th', Friday: 'F' };
-  const dayAbbr = dayMapping[day] || 'M';
+app.get("/home", (req, res) => {
+  const day = req.query.day || "Monday";
+  const dayMapping = {
+    Monday: "M",
+    Tuesday: "Tu",
+    Wednesday: "W",
+    Thursday: "Th",
+    Friday: "F",
+  };
+  const dayAbbr = dayMapping[day] || "M";
 
   const scale = 1; // 1px per minute
   const totalMinutes = 1320 - 420;
   const calendarHeight = totalMinutes * scale;
 
-
   // Build bookings for the user's schedule from in-memory userClasses.
   const bookings = userClasses
+
   .filter(c => c.days.includes(dayAbbr))
   .map(c => {
     const startOffset = timeToMinutes(c.start);
@@ -92,23 +102,30 @@ app.get('/home', (req, res) => {
   });
 
 
-  res.render('home', { day, bookings, scale, calendarHeight });
+
+  res.render("home", { day, bookings, scale, calendarHeight });
 });
 // New route for the Map tab
-app.get('/map', (req, res) => {
+app.get("/map", (req, res) => {
   res.render("map");
 });
 
 // Example: GET /api/myclasses
 // Returns a JSON array of the user's classes for Monday
-app.get('/api/myclasses', (req, res) => {
+app.get("/api/myclasses", (req, res) => {
   // You might pick a day from query or just hardcode Monday
-  const day = 'Monday';
-  const dayMapping = { Monday: 'M', Tuesday: 'Tu', Wednesday: 'W', Thursday: 'Th', Friday: 'F' };
-  const dayAbbr = dayMapping[day] || 'M';
+  const day = "Monday";
+  const dayMapping = {
+    Monday: "M",
+    Tuesday: "Tu",
+    Wednesday: "W",
+    Thursday: "Th",
+    Friday: "F",
+  };
+  const dayAbbr = dayMapping[day] || "M";
 
   // Filter userClasses for just Monday
-  const mondayClasses = userClasses.filter(c => c.days.includes(dayAbbr));
+  const mondayClasses = userClasses.filter((c) => c.days.includes(dayAbbr));
 
   // Return them as JSON
   // Each object has { className, days, start, end }
@@ -119,19 +136,25 @@ app.get('/api/myclasses', (req, res) => {
  * GET /home/freerooms?day=Monday&time=01:30PM
  * Returns JSON array of free room names at that day/time based on CSV data.
  */
-app.get('/home/freerooms', (req, res) => {
-  const day = req.query.day || 'Monday';
+app.get("/home/freerooms", (req, res) => {
+  const day = req.query.day || "Monday";
   const timeStr = req.query.time; // e.g. "01:30PM"
   if (!timeStr) {
     return res.json([]);
   }
 
-  const dayMapping = { Monday: 'M', Tuesday: 'Tu', Wednesday: 'W', Thursday: 'Th', Friday: 'F' };
-  const dayAbbr = dayMapping[day] || 'M';
+  const dayMapping = {
+    Monday: "M",
+    Tuesday: "Tu",
+    Wednesday: "W",
+    Thursday: "Th",
+    Friday: "F",
+  };
+  const dayAbbr = dayMapping[day] || "M";
   const clickOffset = timeToMinutes(timeStr);
 
   // Find all classes meeting on this day.
-  const classesForDay = classData.filter(row => {
+  const classesForDay = classData.filter((row) => {
     const dt = parseDayTime(row["Day/Time"]);
     if (!dt) return false;
     return dt.days.includes(dayAbbr);
@@ -140,7 +163,7 @@ app.get('/home/freerooms', (req, res) => {
   // Build a set of all room names.
   let allRooms = new Set();
   for (let row of classesForDay) {
-    let loc = row["Location"].replace(/^[A-Z]+:\s*/i, '').trim();
+    let loc = row["Location"].replace(/^[A-Z]+:\s*/i, "").trim();
     allRooms.add(loc);
   }
 
@@ -151,7 +174,7 @@ app.get('/home/freerooms', (req, res) => {
     const startMins = timeToMinutes(dt.start);
     const endMins = timeToMinutes(dt.end);
     if (clickOffset >= startMins && clickOffset < endMins) {
-      let loc = row["Location"].replace(/^[A-Z]+:\s*/i, '').trim();
+      let loc = row["Location"].replace(/^[A-Z]+:\s*/i, "").trim();
       allRooms.delete(loc);
     }
   }
@@ -175,30 +198,35 @@ app.get('/home/freerooms', (req, res) => {
     /^Sci & Engr Library/i,
     /^Ocean/i,
     /^LG/i,
-    /^Biomed/i
-    
+    /^Biomed/i,
   ];
   function isDisallowed(room) {
-    return disallowedPrefixes.some(pattern => pattern.test(room));
+    return disallowedPrefixes.some((pattern) => pattern.test(room));
   }
-  let filteredRooms = Array.from(allRooms).filter(room => !isDisallowed(room));
-  filteredRooms.sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
+  let filteredRooms = Array.from(allRooms).filter(
+    (room) => !isDisallowed(room)
+  );
+  filteredRooms.sort((a, b) =>
+    a.localeCompare(b, "en", { sensitivity: "base" })
+  );
 
   return res.json(filteredRooms);
 });
 
 // ---------- (2) YOUR SCHEDULE: Add classes (with autosuggest) + remove classes ----------
-app.get('/schedule', (req, res) => {
-  const allClasses = Array.from(new Set(classData.map(row => row["Class"].trim()))).sort();
-  res.render('schedule', { allClasses, userClasses });
+app.get("/schedule", (req, res) => {
+  const allClasses = Array.from(
+    new Set(classData.map((row) => row["Class"].trim()))
+  ).sort();
+  res.render("schedule", { allClasses, userClasses });
 });
 
-app.post('/schedule', (req, res) => {
+app.post("/schedule", (req, res) => {
   const classCode = req.body.classCode.trim();
   if (!classCode) {
     return res.send("Please enter a class code.");
   }
-  const record = classData.find(r => r["Class"].trim().startsWith(classCode));
+  const record = classData.find((r) => r["Class"].trim().startsWith(classCode));
   if (!record) {
     return res.send("Could not find a class matching that code.");
   }
@@ -208,33 +236,45 @@ app.post('/schedule', (req, res) => {
   }
   userClasses.push({
     className: record["Class"],
+    location: record["Location"],
     days: dt.days,
     start: dt.start,
-    end: dt.end
+    end: dt.end,
   });
-  res.redirect('/schedule');
+
+  res.redirect("/schedule");
 });
 
-app.post('/schedule/remove', (req, res) => {
+app.post("/schedule/remove", (req, res) => {
   const classToRemove = req.body.classToRemove;
-  userClasses = userClasses.filter(c => c.className !== classToRemove);
-  res.redirect('/schedule');
+  userClasses = userClasses.filter((c) => c.className !== classToRemove);
+  res.redirect("/schedule");
 });
 
 // ---------- (3) PICK A ROOM: (CSV-based filtering) ----------
-app.get('/pickaroom', (req, res) => {
-  const day = req.query.day || 'Monday';
-  const location = req.query.location || '';
-  const dayMapping = { Monday: 'M', Tuesday: 'Tu', Wednesday: 'W', Thursday: 'Th', Friday: 'F' };
-  const dayAbbr = dayMapping[day] || 'M';
+app.get("/pickaroom", (req, res) => {
+  const day = req.query.day || "Monday";
+  const location = req.query.location || "";
+  const dayMapping = {
+    Monday: "M",
+    Tuesday: "Tu",
+    Wednesday: "W",
+    Thursday: "Th",
+    Friday: "F",
+  };
+  const dayAbbr = dayMapping[day] || "M";
 
   // Filter CSV data based on the day and (if provided) the location.
-  const filtered = classData.filter(item => {
-    const dtObj = parseDayTime(item['Day/Time']);
+  const filtered = classData.filter((item) => {
+    const dtObj = parseDayTime(item["Day/Time"]);
     if (!dtObj) return false;
     if (!dtObj.days.includes(dayAbbr)) return false;
-    const normalizedLoc = item['Location'].replace(/^[A-Z]+:\s*/i, '');
-    if (location && !normalizedLoc.toLowerCase().includes(location.toLowerCase())) return false;
+    const normalizedLoc = item["Location"].replace(/^[A-Z]+:\s*/i, "");
+    if (
+      location &&
+      !normalizedLoc.toLowerCase().includes(location.toLowerCase())
+    )
+      return false;
     return true;
   });
 
@@ -242,28 +282,37 @@ app.get('/pickaroom', (req, res) => {
   const totalMinutes = 1320 - 420;
   const calendarHeight = totalMinutes * scale;
 
-  const bookings = filtered.map(item => {
-    const dtObj = parseDayTime(item['Day/Time']);
-    if (!dtObj) return null;
-    const startOffset = timeToMinutes(dtObj.start);
-    const endOffset = timeToMinutes(dtObj.end);
-    return {
-      className: item['Class'],
-      location: item['Location'],
-      timeRange: `${dtObj.start} - ${dtObj.end}`,
-      top: startOffset * scale,
-      height: (endOffset - startOffset) * scale
-    };
-  }).filter(Boolean);
+  const bookings = filtered
+    .map((item) => {
+      const dtObj = parseDayTime(item["Day/Time"]);
+      if (!dtObj) return null;
+      const startOffset = timeToMinutes(dtObj.start);
+      const endOffset = timeToMinutes(dtObj.end);
+      return {
+        className: item["Class"],
+        location: item["Location"],
+        timeRange: `${dtObj.start} - ${dtObj.end}`,
+        top: startOffset * scale,
+        height: (endOffset - startOffset) * scale,
+      };
+    })
+    .filter(Boolean);
 
   // Compute a unique list of normalized locations for autosuggest.
   const allLocations = Array.from(
     new Set(
-      classData.map(row => row["Location"].replace(/^[A-Z]+:\s*/i, '').trim())
+      classData.map((row) => row["Location"].replace(/^[A-Z]+:\s*/i, "").trim())
     )
-  ).sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
+  ).sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }));
 
-  res.render('pickaroom', { day, locationFilter: location, bookings, scale, calendarHeight, allLocations });
+  res.render("pickaroom", {
+    day,
+    locationFilter: location,
+    bookings,
+    scale,
+    calendarHeight,
+    allLocations,
+  });
 });
 
 app.listen(PORT, () => {

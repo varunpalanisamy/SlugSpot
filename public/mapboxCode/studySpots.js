@@ -63,6 +63,10 @@ window.initMap = function () {
     });
   }
 
+  function normalizeLocation(rawLoc) {
+    return rawLoc.replace(/^(LEC:|SEM:|LAB:)?\s*/, "").trim();
+  }
+
   function geocodeAndPlaceMultiMarker(address, locationsArray, color, category) {
     const geocoder = new google.maps.Geocoder();
     geocoder.geocode({ address: address }, (results, status) => {
@@ -107,8 +111,7 @@ window.initMap = function () {
     });
   }
   
-  
-
+ 
   fetch("/mapboxCode/test.csv")
   .then((res) => res.text())
   .then((csvText) => {
