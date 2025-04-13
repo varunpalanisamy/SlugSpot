@@ -1,10 +1,6 @@
 """
 scrape_all_discussions.py
 
-This script uses Selenium, BeautifulSoup, and pandas to automate the scraping
-of discussion section details for all classes returned by the UCSC class search.
-It performs the following steps:
-
 1. Navigate to the UCSC class search page: https://pisa.ucsc.edu/class_search/
 2. Select term "Spring Quarter 2025" (value "2252") and status "All Classes".
 3. Click on the Search button.

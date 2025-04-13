@@ -212,7 +212,7 @@
         <a href="/pickaroom">Pick a Room</a>
         <a href="/map">Map</a>
       </div>
-      <div class="date-display">April 11th, 2025 (Friday)</div>
+      <div class="date-display"><%= new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></div>
     </div>
 
     <div class="main-content">

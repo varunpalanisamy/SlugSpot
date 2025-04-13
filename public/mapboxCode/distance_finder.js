@@ -22,17 +22,14 @@ function getWalkingTime(from, to) {
 
 
 function initMarkers(map) {
-  // 1) fetch user’s Monday classes from our new route
   const testClasses = [];
   fetch("/api/myclasses")
     .then((res) => res.json())
     .then((userClasses) => {
-      console.log("✅ Received userClasses from /api/myclasses:");
+      console.log("Received userClasses from /api/myclasses:");
       userClasses.forEach((cls, i) => {
         console.log(`Class ${i}:`, cls);
       });
-      // => userClasses is an array of objects: [{ className, days, start, end }, ...]
-      // 2) parse classes_addresses.csv so we can map each "className" to an "Address"
       return fetch("/mapboxCode/test.csv")
         .then((res) => res.text())
         .then((csvText) => {
@@ -40,7 +37,7 @@ function initMarkers(map) {
             header: true,
             skipEmptyLines: true,
           });
-          console.log("✅ Parsed test.csv:");
+          console.log("Parsed test.csv:");
           parsed.data.forEach((row, i) => {
             console.log(
               `Row ${i}: Location=${row["Location"]}, Address=${row["Address"]}`
@@ -50,7 +47,6 @@ function initMarkers(map) {
         });
     })
     .then(({ userClasses, addressRows }) => {
-      // 3) For each userClass, find the address in addressRows
       userClasses.forEach((cls, index) => {
         const normalizedClass = normalizeLocation(cls.location);
         console.log(`🔍 [${index}] Raw class location: ${cls.location}`);
@@ -69,13 +65,13 @@ function initMarkers(map) {
 
         if (!matching) {
           console.warn(
-            `❌ No address match for ${cls.className} → normalized: '${normalizedClass}'`
+            `No address match for ${cls.className} → normalized: '${normalizedClass}'`
           );
           return;
         }
 
         const address = matching["Address"];
-        console.log(`✅ Found address: ${address}`);
+        console.log(`Found address: ${address}`);
         geocodeAndPlacePinkMarker(map, cls, address);
       });
     })
@@ -89,15 +85,13 @@ function initMarkers(map) {
   const breakStartMin = timeToMinutes(breakStart);
   const breakEndMin = timeToMinutes(breakEnd);
 
-  const scheduledClasses = new Map(); // location → list of [start, end] in minutes
+   // location → list of [start, end] in minutes
 
-  // Utility to parse time to minutes
   function timeToMinutes(timeStr) {
     const [h, m] = timeStr.split(":").map(Number);
     return h * 60 + m;
   }
 
-  // Parses 'MWF 01:20PM-02:25PM' into [startMin, endMin]
   function parseClassTime(str) {
     const match = str.match(/(\d{1,2}:\d{2}[AP]M)-(\d{1,2}:\d{2}[AP]M)/);
     if (!match) return null;
@@ -139,7 +133,7 @@ function initMarkers(map) {
   }
 
 
-  // Step 1: Load class schedule first
+  // Load class schedule first
   fetch("/data/occupied_rooms.csv")
     .then((res) => res.text())
     .then((csvText) => {
@@ -157,7 +151,7 @@ function initMarkers(map) {
         scheduledClasses.get(loc).push(timeRange);
       });
 
-      // Step 2: Geocode test classes
+      // Geocode test classes
       return Promise.all(
         testClasses.map((cls, i) =>
           geocodeAddress(cls.address).then((coords) => {
@@ -192,8 +186,8 @@ function initMarkers(map) {
     })
     .then(() => {
       const sources = [
-        { file: "public_addresses.csv", label: "📚 Study" },
-        { file: "food_addresses.csv", label: "🍔 Food" },
+        { file: "public_addresses.csv", label: "Study" },
+        { file: "food_addresses.csv", label: "Food" },
         { file: "test.csv", label: "🚪 Classroom" },
       ];
 
@@ -216,7 +210,7 @@ function initMarkers(map) {
                 geocodeAddress(row.Address).then((coords) => {
                   if (!coords) return null;
                   if (!classCoords.start || !classCoords.end) {
-                    console.warn("🚫 Missing start or end coordinates; skipping walk time calculations.");
+                    console.warn("Missing start or end coordinates; skipping walk time calculations.");
                     return;
                   }
                   
@@ -237,7 +231,7 @@ function initMarkers(map) {
                 })
               )
             ).then((spots) => {
-              console.log(`✅ ${label} spaces open between your classes:`);
+              console.log(`${label} spaces open between your classes:`);
               spots
                 .filter(Boolean)
                 .sort((a, b) => a.totalTransit - b.totalTransit)
@@ -252,7 +246,7 @@ function initMarkers(map) {
     });
 }
 
-// Helper to geocode + place pink marker
+// Helper to geocode and place marker
 function geocodeAndPlacePinkMarker(map, clsObj, address) {
   const geocoder = new google.maps.Geocoder();
   geocoder.geocode({ address: address }, (results, status) => {
@@ -265,9 +259,8 @@ function geocodeAndPlacePinkMarker(map, clsObj, address) {
           url: "http://maps.google.com/mapfiles/ms/icons/pink-dot.png",
         },
       });
-      marker.setVisible(false); // default hidden until user toggles
+      marker.setVisible(false);
 
-      // infoWindow
       const infoWindow = new google.maps.InfoWindow({
         content: `
           <h3>${clsObj.className}</h3>
@@ -277,7 +270,6 @@ function geocodeAndPlacePinkMarker(map, clsObj, address) {
       });
       marker.addListener("click", () => infoWindow.open(map, marker));
 
-      // store in markerGroups["test"] so “Test Classes” button can show/hide
       markerGroups.test.push(marker);
     } else {
       console.error(`geocode failed for ${clsObj.className}:`, status);
