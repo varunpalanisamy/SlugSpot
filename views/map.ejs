@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Campus Study Spots - Map</title>
 
-    <!-- Font & Icons -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
       rel="stylesheet"
     />
 
     <style>
-      /* Reset & basic styles */
       * {
         box-sizing: border-box;
         margin: 0;
@@ -23,7 +21,6 @@
         background-color: #f7f9fc;
         color: #333;
       }
-      /* Navigation styling (you can adjust colors to match your site) */
       .top-nav {
         background: linear-gradient(to right, #003c6c, #0064b4);
         padding: 1rem 2rem;
@@ -49,7 +46,7 @@
         color: white;
         font-weight: 500;
       }
-      /* Map styles */
+
       #map {
         height: 100vh;
         width: 100%;
@@ -72,7 +69,7 @@
       .hidden {
         display: none;
       }
-      /* Controls */
+
       .map-controls {
         position: absolute;
         top: 60px;
@@ -92,16 +89,14 @@
       }
     </style>
 
-    <!-- Load config.js first (should contain your GOOGLE_MAPS_API_KEY) -->
+
     <script src="/config.js"></script>
     
-    <!-- PapaParse for CSV parsing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <script src="/mapboxCode/studySpots.js"></script>
     <script src="/mapboxCode/distance_finder.js"></script>
 
-    <!-- Inject Google Maps API using your API key from config.js -->
     <script>
       if (!window.GOOGLE_MAPS_API_KEY) {
         console.error("No API key found in config.js!");
@@ -128,13 +123,10 @@
       <div class="date-display">Campus Map</div>
     </div>
 
-    <!-- Optional loading spinner -->
     <div id="loading">Loading map...</div>
 
-    <!-- Map container -->
     <div id="map"></div>
 
-    <!-- Map controls -->
     <div class="map-controls">
       <button onclick="toggleMarkers('class')">📘 Class Locations</button>
       <button onclick="toggleMarkers('study')">📚 Study Spots</button>
@@ -145,7 +137,6 @@
 
     </div>
 
-    <!-- Load your map scripts from your public folder -->
 
   </body>
 </html>
