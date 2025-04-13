@@ -2,3 +2,5 @@ node_modules
 myenv
 newenv
 config.js
+.DS_Store
+chromedriver-mac-arm64/

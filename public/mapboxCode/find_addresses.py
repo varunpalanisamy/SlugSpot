@@ -4,14 +4,12 @@ def separate_location():
     file_path = '../data/ucsc_class_data_preprocessed.csv'
     data = pd.read_csv(file_path)
 
-    # Normalize column names
     data.columns = data.columns.str.strip()
 
     if 'Location' not in data.columns:
         print("ERROR: 'Location' column not found.")
         return
 
-    # Remove prefix like "LEC: " (first 5 characters) and strip whitespace
     data['Location'] = data['Location'].str[5:].str.strip()
 
     # Remove last word if it's numeric (room number)
@@ -23,15 +21,12 @@ def separate_location():
 
     data['CleanedLocation'] = data['Location']
 
-    # Get unique cleaned locations in a new DataFrame
     unique_locations_df = data[['CleanedLocation']].drop_duplicates().reset_index(drop=True)
 
-    # Print result
     print(unique_locations_df)
 
     return unique_locations_df
 
-# Call the function
 unique_locations = separate_location()
 if unique_locations is not None:
     pd.set_option('display.max_rows', None)
@@ -87,4 +82,3 @@ if unique_locations is not None:
 
 # data['GeocodedAddress'] = geocoded_addresses
 # data.to_csv("ucsc_locations_with_addresses.csv", index=False)
-# print("✅ Geocoded addresses saved!")
