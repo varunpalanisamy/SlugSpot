@@ -29,7 +29,7 @@ public/config.js
 With the contents:
 
 ```js
-  "GOOGLE_MAPS_API_KEY": "YOUR_GOOGLE_MAPS_API_KEY"
+"GOOGLE_MAPS_API_KEY": "YOUR_GOOGLE_MAPS_API_KEY"
 ```
 Replace with your own API key. Make sure you enable:
 - Maps JavaScript API
