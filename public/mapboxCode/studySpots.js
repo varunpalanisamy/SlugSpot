@@ -199,3 +199,73 @@ window.toggleMarkers = function (type) {
     `${!currentlyVisible ? "Showing" : "Hiding"} ${markerGroups[type].length} "${type}" markers`
   );
 };
+
+
+window.showClosestSpots = async function () {
+  // 1. Get user's current location
+  if (!navigator.geolocation) {
+    alert("Geolocation not supported.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(async (position) => {
+    const userLatLng = {
+      lat: position.coords.latitude,
+      lng: position.coords.longitude,
+    };
+
+    // 2. Hide all existing markers
+    for (let type in markerGroups) {
+      markerGroups[type].forEach(marker => marker.setVisible(false));
+    }
+
+    // 3. Show blue marker for current location
+    new google.maps.Marker({
+      position: userLatLng,
+      map,
+      title: "You are here",
+      icon: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+    });
+
+    // 4. Compute distances to all markers in each category
+    const closest = {};
+    const types = ["study", "food", "class"];
+
+    for (const type of types) {
+      const markers = markerGroups[type];
+      if (!markers || markers.length === 0) continue;
+
+      const distances = await Promise.all(
+        markers.map(marker => getWalkingTime(userLatLng, marker.getPosition()))
+      );
+
+      // Attach distance to each marker
+      const combined = markers.map((marker, i) => ({
+        marker,
+        distance: distances[i],
+      }));
+
+      // Special filtering for class markers → by *unique address/title* (to avoid showing 3 Soc Sci 1s)
+      if (type === "class") {
+        const uniqueByTitle = {};
+        for (let entry of combined) {
+          const title = entry.marker.getTitle();
+          if (!uniqueByTitle[title]) {
+            uniqueByTitle[title] = entry;
+          } else if (entry.distance < uniqueByTitle[title].distance) {
+            uniqueByTitle[title] = entry;
+          }
+        }
+        combined.length = 0;
+        combined.push(...Object.values(uniqueByTitle));
+      }
+
+      // 5. Sort and show top 3
+      combined
+        .sort((a, b) => a.distance - b.distance)
+        .slice(0, 3)
+        .forEach(entry => entry.marker.setVisible(true));
+    }
+  });
+};
+

@@ -1,3 +1,26 @@
+function getWalkingTime(from, to) {
+  return new Promise((resolve, reject) => {
+    const service = new google.maps.DistanceMatrixService();
+    service.getDistanceMatrix(
+      {
+        origins: [from],
+        destinations: [to],
+        travelMode: google.maps.TravelMode.WALKING,
+      },
+      (response, status) => {
+        if (status === "OK") {
+          const durationSec = response.rows[0].elements[0].duration.value;
+          resolve(durationSec / 60); // in minutes
+        } else {
+          console.error("DistanceMatrixService failed:", status);
+          reject(status);
+        }
+      }
+    );
+  });
+}
+
+
 function initMarkers(map) {
   // 1) fetch user’s Monday classes from our new route
   const testClasses = [];
@@ -115,27 +138,6 @@ function initMarkers(map) {
       );
   }
 
-  function getWalkingTime(from, to) {
-    return new Promise((resolve, reject) => {
-      const service = new google.maps.DistanceMatrixService();
-      service.getDistanceMatrix(
-        {
-          origins: [from],
-          destinations: [to],
-          travelMode: google.maps.TravelMode.WALKING,
-        },
-        (response, status) => {
-          if (status === "OK") {
-            const durationSec = response.rows[0].elements[0].duration.value;
-            resolve(durationSec / 60);
-          } else {
-            console.error("DistanceMatrixService failed:", status);
-            reject(status);
-          }
-        }
-      );
-    });
-  }
 
   // Step 1: Load class schedule first
   fetch("/data/occupied_rooms.csv")
