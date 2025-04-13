@@ -194,5 +194,5 @@ function initMarkers(map) {
           });
       });
     });
-  }
-  
+}
+
