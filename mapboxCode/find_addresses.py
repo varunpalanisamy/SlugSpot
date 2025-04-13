@@ -1,7 +1,7 @@
 import pandas as pd
 
 def separate_location():
-    file_path = 'ucsc_class_data_preprocessed.csv'
+    file_path = '../data/ucsc_class_data_preprocessed.csv'
     data = pd.read_csv(file_path)
 
     # Normalize column names
@@ -15,13 +15,13 @@ def separate_location():
     data['Location'] = data['Location'].str[5:].str.strip()
 
     # Remove last word if it's numeric (room number)
-    def remove_last_if_number(loc):
-        parts = loc.split()
-        if parts and parts[-1].isdigit():
-            return ' '.join(parts[:-1])
-        return loc
+    # def remove_last_if_number(loc):
+    #     parts = loc.split()
+    #     if parts and parts[-1].isdigit():
+    #         return ' '.join(parts[:-1])
+    #     return loc
 
-    data['CleanedLocation'] = data['Location'].apply(remove_last_if_number)
+    data['CleanedLocation'] = data['Location']
 
     # Get unique cleaned locations in a new DataFrame
     unique_locations_df = data[['CleanedLocation']].drop_duplicates().reset_index(drop=True)
