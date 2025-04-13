@@ -96,6 +96,22 @@ app.get('/map', (req, res) => {
   res.render("map");
 });
 
+// Example: GET /api/myclasses
+// Returns a JSON array of the user's classes for Monday
+app.get('/api/myclasses', (req, res) => {
+  // You might pick a day from query or just hardcode Monday
+  const day = 'Monday';
+  const dayMapping = { Monday: 'M', Tuesday: 'Tu', Wednesday: 'W', Thursday: 'Th', Friday: 'F' };
+  const dayAbbr = dayMapping[day] || 'M';
+
+  // Filter userClasses for just Monday
+  const mondayClasses = userClasses.filter(c => c.days.includes(dayAbbr));
+
+  // Return them as JSON
+  // Each object has { className, days, start, end }
+  res.json(mondayClasses);
+});
+
 /**
  * GET /home/freerooms?day=Monday&time=01:30PM
  * Returns JSON array of free room names at that day/time based on CSV data.
