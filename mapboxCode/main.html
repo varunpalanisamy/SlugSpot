@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Campus Study Spots</title>
+
+    <!-- Font & Icons -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f7f9fc;
+        color: #333;
+      }
+
+      #map {
+        height: 100vh;
+        width: 100%;
+        border-radius: 0;
+        box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+      }
+
+      /* Optional: Loading spinner */
+      #loading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 1.2rem;
+        background: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+        display: none;
+      }
+
+      .hidden {
+        display: none;
+      }
+    </style>
+
+    <!-- Load config.js first -->
+    <script src="config.js"></script>
+
+    <!-- PapaParse for CSV parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <!-- Inject Google Maps API -->
+    <script>
+      if (!window.GOOGLE_MAPS_API_KEY) {
+        console.error("No API key found in config.js!");
+      } else {
+        const script = document.createElement("script");
+        script.src =
+          "https://maps.googleapis.com/maps/api/js?key=" +
+          window.GOOGLE_MAPS_API_KEY +
+          "&callback=initMap&libraries=marker";
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      }
+    </script>
+  </head>
+  <body>
+    <div id="loading">Loading map...</div>
+
+    <div
+      style="
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 1000;
+        background: white;
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      "
+    >
+      <button onclick="toggleMarkers('class')" style="margin: 2px">
+        📘 Class Locations
+      </button>
+      <button onclick="toggleMarkers('study')" style="margin: 2px">
+        📚 Study Spots
+      </button>
+      <button onclick="toggleMarkers('food')" style="margin: 2px">
+        🍔 Food Spots
+      </button>
+      <button onclick="toggleMarkers('test')" style="margin: 2px">
+        🎯 Test Classes
+      </button>
+      
+    </div>
+
+    <div id="map"></div>
+
+    <!-- Load the main script -->
+    <script src="studySpots.js"></script>
+    <script src="distance_finder.js"></script>
+  </body>
+</html>
