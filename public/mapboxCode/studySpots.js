@@ -63,7 +63,7 @@ window.initMap = function () {
     });
   }
 
-  fetch("/mapboxCode/classes_addresses.csv")
+  fetch("/mapboxCode/test.csv")
     .then((res) => res.text())
     .then((csvText) => {
       const results = Papa.parse(csvText, {

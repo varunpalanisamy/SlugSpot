@@ -7,7 +7,7 @@ function initMarkers(map) {
     .then(userClasses => {
       // => userClasses is an array of objects: [{ className, days, start, end }, ...]
       // 2) parse classes_addresses.csv so we can map each "className" to an "Address"
-      return fetch('/mapboxCode/classes_addresses.csv')
+      return fetch('/mapboxCode/test.csv')
         .then(res => res.text())
         .then(csvText => {
           const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
@@ -170,7 +170,7 @@ function initMarkers(map) {
       const sources = [
         { file: "public_addresses.csv", label: "📚 Study" },
         { file: "food_addresses.csv", label: "🍔 Food" },
-        { file: "classes_addresses.csv", label: "🚪 Classroom" },
+        { file: "test.csv", label: "🚪 Classroom" },
       ];
 
       sources.forEach(({ file, label }) => {
