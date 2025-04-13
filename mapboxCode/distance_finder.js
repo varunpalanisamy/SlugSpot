@@ -14,37 +14,45 @@ function initMarkers(map) {
     },
   ];
 
-  const classCoords = {
-    start: null,
-    end: null,
-  };
-
+  const classCoords = { start: null, end: null };
   const breakStart = "11:45";
   const breakEnd = "13:20";
+  const breakStartMin = timeToMinutes(breakStart);
+  const breakEndMin = timeToMinutes(breakEnd);
 
-  function timeToMinutes(t) {
-    const [h, m] = t.split(":").map(Number);
+  const scheduledClasses = new Map(); // location → list of [start, end] in minutes
+
+  // Utility to parse time to minutes
+  function timeToMinutes(timeStr) {
+    const [h, m] = timeStr.split(":").map(Number);
     return h * 60 + m;
   }
 
-  function overlapsBreak(schedule) {
-    // Format: "MWF 12:00PM-01:05PM"
-    const match = schedule.match(/(\d{1,2}:\d{2}[AP]M)-(\d{1,2}:\d{2}[AP]M)/);
-    if (!match) return false;
+  // Parses 'MWF 01:20PM-02:25PM' into [startMin, endMin]
+  function parseClassTime(str) {
+    const match = str.match(/(\d{1,2}:\d{2}[AP]M)-(\d{1,2}:\d{2}[AP]M)/);
+    if (!match) return null;
 
-    const parse = (t) =>
-      timeToMinutes(
-        t
-          .replace("AM", "")
-          .replace("PM", "")
-          .trim()
-          .replace(/^(\d):/, "0$1:")
-      ) + (t.includes("PM") && !t.startsWith("12") ? 720 : 0);
+    const [_, startStr, endStr] = match;
 
-    const [_, startTime, endTime] = match;
-    const breakStartMin = timeToMinutes(breakStart);
-    const breakEndMin = timeToMinutes(breakEnd);
-    return parse(startTime) < breakEndMin && parse(endTime) > breakStartMin;
+    const to24hr = (s) => {
+      let [h, m] = s.replace(/AM|PM/, "").split(":").map(Number);
+      if (s.includes("PM") && h !== 12) h += 12;
+      if (s.includes("AM") && h === 12) h = 0;
+      return h * 60 + m;
+    };
+
+    return [to24hr(startStr), to24hr(endStr)];
+  }
+
+  function normalizeLocation(rawLoc) {
+    return rawLoc.replace(/^(LEC:|SEM:|LAB:)?\s*/, "").replace(/\s+\d+$/, "").trim();
+  }
+
+  function locationHasConflict(loc) {
+    const entries = scheduledClasses.get(loc);
+    if (!entries) return false;
+    return entries.some(([start, end]) => start < breakEndMin && end > breakStartMin);
   }
 
   function geocodeAddress(address) {
@@ -66,7 +74,6 @@ function initMarkers(map) {
           origins: [from],
           destinations: [to],
           travelMode: google.maps.TravelMode.WALKING,
-          unitSystem: google.maps.UnitSystem.IMPERIAL,
         },
         (response, status) => {
           if (status === "OK") {
@@ -81,91 +88,110 @@ function initMarkers(map) {
     });
   }
 
-  Promise.all(
-    testClasses.map((cls, i) =>
-      geocodeAddress(cls.address).then((coords) => {
-        if (!coords) return;
+  // Step 1: Load class schedule first
+  fetch("../data/ucsc_class_data_preprocessed.csv")
+    .then((res) => res.text())
+    .then((csvText) => {
+      const results = Papa.parse(csvText, {
+        header: true,
+        skipEmptyLines: true,
+      });
 
-        const marker = new google.maps.Marker({
-          position: coords,
-          map,
-          icon: {
-            url: "http://maps.google.com/mapfiles/ms/icons/pink-dot.png",
-          },
-          title: `${cls.className}`,
-        });
+      results.data.forEach((row) => {
+        const loc = normalizeLocation(row["Location"]);
+        const timeRange = parseClassTime(row["Day/Time"]);
+        if (!timeRange) return;
 
-        marker.setVisible(false);
+        if (!scheduledClasses.has(loc)) scheduledClasses.set(loc, []);
+        scheduledClasses.get(loc).push(timeRange);
+      });
 
-        const infoWindow = new google.maps.InfoWindow({
-          content: `<h3>${cls.className}</h3><p>${cls.time}</p><p>${cls.location}</p>`,
-        });
+      // Step 2: Geocode test classes
+      return Promise.all(
+        testClasses.map((cls, i) =>
+          geocodeAddress(cls.address).then((coords) => {
+            if (!coords) return;
 
-        marker.addListener("click", () => {
-          infoWindow.open(map, marker);
-        });
+            const marker = new google.maps.Marker({
+              position: coords,
+              map,
+              icon: {
+                url: "http://maps.google.com/mapfiles/ms/icons/pink-dot.png",
+              },
+              title: `${cls.className}`,
+            });
 
-        markerGroups.test.push(marker);
+            marker.setVisible(false);
 
-        if (i === 0) classCoords.start = coords;
-        if (i === 1) classCoords.end = coords;
-      })
-    )
-  ).then(() => {
-    const sources = [
-      { file: "public_addresses.csv", label: "📚 Study", tag: "study" },
-      { file: "food_addresses.csv", label: "🍔 Food", tag: "food" },
-      { file: "classes_addresses.csv", label: "🚫 Class", tag: "class" },
-    ];
+            const infoWindow = new google.maps.InfoWindow({
+              content: `<h3>${cls.className}</h3><p>${cls.time}</p><p>${cls.location}</p>`,
+            });
 
-    sources.forEach(({ file, label, tag }) => {
-      fetch(file)
-        .then((res) => res.text())
-        .then((csvText) => {
-          const results = Papa.parse(csvText, {
-            header: true,
-            skipEmptyLines: true,
-          });
+            marker.addListener("click", () => {
+              infoWindow.open(map, marker);
+            });
 
-          const filtered = results.data.filter((row) => {
-            if (file === "classes_addresses.csv") {
-              return !overlapsBreak(row["Day/Time"]);
-            }
-            return true;
-          });
+            markerGroups.test.push(marker);
 
-          Promise.all(
-            filtered.map((row) =>
-              geocodeAddress(row.Address).then((coords) => {
-                if (!coords) return null;
+            if (i === 0) classCoords.start = coords;
+            if (i === 1) classCoords.end = coords;
+          })
+        )
+      );
+    })
+    .then(() => {
+      const sources = [
+        { file: "public_addresses.csv", label: "📚 Study" },
+        { file: "food_addresses.csv", label: "🍔 Food" },
+        { file: "classes_addresses.csv", label: "🚪 Classroom" },
+      ];
 
-                return Promise.all([
-                  getWalkingTime(classCoords.start, coords),
-                  getWalkingTime(coords, classCoords.end),
-                ]).then(([fromStart, toNext]) => {
-                  return {
-                    name: row.Location || row.Class || row.Address,
-                    address: row.Address,
-                    fromStart: Math.round(fromStart),
-                    toNext: Math.round(toNext),
-                    totalTransit: Math.round(fromStart + toNext),
-                    type: label,
-                  };
+      sources.forEach(({ file, label }) => {
+        fetch(file)
+          .then((res) => res.text())
+          .then((csvText) => {
+            const results = Papa.parse(csvText, {
+              header: true,
+              skipEmptyLines: true,
+            });
+
+            const validSpots = results.data.filter((row) => {
+              const loc = normalizeLocation(row.Location || row.Class || "");
+              return !locationHasConflict(loc);
+            });
+
+            Promise.all(
+              validSpots.map((row) =>
+                geocodeAddress(row.Address).then((coords) => {
+                  if (!coords) return null;
+
+                  return Promise.all([
+                    getWalkingTime(classCoords.start, coords),
+                    getWalkingTime(coords, classCoords.end),
+                  ]).then(([fromStart, toNext]) => {
+                    return {
+                      name: row.Location || row.Class || row.Address,
+                      address: row.Address,
+                      fromStart: Math.round(fromStart),
+                      toNext: Math.round(toNext),
+                      totalTransit: Math.round(fromStart + toNext),
+                      type: label,
+                    };
+                  });
+                })
+              )
+            ).then((spots) => {
+              console.log(`✅ ${label} spaces open between your classes:`);
+              spots
+                .filter(Boolean)
+                .sort((a, b) => a.totalTransit - b.totalTransit)
+                .forEach((spot) => {
+                  console.log(
+                    `${spot.type} — ${spot.name} (${spot.fromStart} min from class 1, ${spot.toNext} min to class 2)`
+                  );
                 });
-              })
-            )
-          ).then((spots) => {
-            console.log(`✅ ${label} spots between your classes:`);
-            spots
-              .filter(Boolean)
-              .sort((a, b) => a.totalTransit - b.totalTransit)
-              .forEach((spot) => {
-                console.log(
-                  `${spot.type} — ${spot.name} (${spot.fromStart} min from first class, ${spot.toNext} min to next)`
-                );
-              });
+            });
           });
-        });
+      });
     });
-  });
 }
