@@ -24,6 +24,8 @@ def scrape_ucsc_classes():
 
     term_dropdown = Select(wait.until(EC.element_to_be_clickable((By.ID, "term_dropdown"))))
     term_dropdown.select_by_value("2252")
+    # term_dropdown.select_by_value(term_code)
+
 
     reg_status_dropdown = Select(wait.until(EC.element_to_be_clickable((By.ID, "reg_status"))))
     reg_status_dropdown.select_by_value("all")

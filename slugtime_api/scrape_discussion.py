@@ -1,31 +1,3 @@
-"""
-scrape_all_discussions.py
-
-1. Navigate to the UCSC class search page: https://pisa.ucsc.edu/class_search/
-2. Select term "Spring Quarter 2025" (value "2252") and status "All Classes".
-3. Click on the Search button.
-4. For each result page:
-   a. Wait for the list of class panels (each with an id starting with "rowpanel_") to load.
-   b. Loop through each class panel (there will be 25 per page):
-      - Click the class link to open its detail menu.
-      - Print the class name to show which class is being processed.
-      - Wait for the discussion/lab section to be visible.
-      - Scrape the discussion rows (ignoring those whose title is "Academic").
-          * For each discussion row, extract:
-                • The discussion code (e.g. "DIS 01A") and combine with the course prefix (from the main class link) to form the Section.
-                • The Day/Time text.
-                • The Location text (with "Loc:" removed).
-      - Append the discussion data to a global list.
-      - Click the “Back to results” link to return to the results.
-   c. Every 25 classes processed, autosave the current scraped discussion data to a CSV file.
-   d. Print progress messages.
-   e. Click the “next” button to go to the next page of results (if available).
-5. At the end, save any remaining discussion data into a CSV file
-   (columns ordered as: Section, Location, Day/Time).
-
-Usage:
-    python scrape_all_discussions.py
-"""
 
 import time, re, os
 import pandas as pd
@@ -54,11 +26,6 @@ def go_to_search_results(driver, wait):
     wait.until(EC.presence_of_all_elements_located((By.XPATH, "//div[starts-with(@id, 'rowpanel_')]")))
 
 def scrape_discussions_from_class(driver, wait, course_prefix):
-    """
-    After a class detail page is loaded, scrape discussion section rows.
-    Returns a list of dictionaries for each discussion row with keys:
-       "Section", "Location", "Day/Time"
-    """
     scraped = []
     try:
         # Scroll to discussion section area

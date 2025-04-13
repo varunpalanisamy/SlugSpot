@@ -3,15 +3,6 @@ import pandas as pd
 import re
 
 def parse_day_time(dt_str):
-    """
-    Parse a Day/Time string such as "MWF 04:00PM-05:05PM" into three components:
-    - Days: e.g. "MWF"
-    - Start Time: e.g. "04:00PM"
-    - End Time: e.g. "05:05PM"
-    
-    Returns a tuple: (days, start, end)
-    If the string cannot be parsed, returns (None, None, None).
-    """
     pattern = r"([A-Za-z]+)\s+(\d{1,2}:\d{2}[AP]M)-(\d{1,2}:\d{2}[AP]M)"
     match = re.match(pattern, dt_str)
     if match:
@@ -20,13 +11,7 @@ def parse_day_time(dt_str):
     return None, None, None
 
 def load_and_normalize_data():
-    """
-    Loads the preprocessed CSV dataset, then parses and adds new columns:
-      - 'Days'
-      - 'Start Time'
-      - 'End Time'
-    from the 'Day/Time' field.
-    """
+
     df = pd.read_csv("ucsc_class_data_preprocessed.csv")
     
     parsed = df["Day/Time"].apply(lambda x: pd.Series(parse_day_time(x)) if isinstance(x, str) else pd.Series([None, None, None]))
