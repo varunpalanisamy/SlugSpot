@@ -4,3 +4,4 @@ newenv
 config.js
 .DS_Store
 chromedriver-mac-arm64/
+public/config.js
