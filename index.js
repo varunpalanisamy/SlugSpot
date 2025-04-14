@@ -96,6 +96,12 @@ app.get("/home", (req, res) => {
   res.render("home", { day, bookings, scale, calendarHeight });
 });
 
+
+app.get("/config.js", (req, res) => {
+  res.set("Content-Type", "application/javascript");
+  res.send(`window.GOOGLE_MAPS_API_KEY = "${process.env.GOOGLE_MAPS_API_KEY}";`);
+});
+
 app.get("/map", (req, res) => {
   res.render("map");
 });
